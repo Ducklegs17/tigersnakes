@@ -1,0 +1,2 @@
+SyntaxError in line 41 of /fast/users/a1761942/snakes/Snakefile:
+Multiple run or shell keywords in rule fastqc_raw. (Snakefile, line 41)

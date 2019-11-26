@@ -1,0 +1,35 @@
+Found /home/a1761942/fast_dir/snakes
+
+Found /home/a1761942/fast_dir/snakes/0_rawData/fastq
+Found /home/a1761942/fast_dir/snakes/0_rawData/FastQC
+
+Trimmed data directories not found.
+Exiting with Error code 3
+
+===========================================================================
+Phoenix Job Utilisation Reporting
+===========================================================================
+Job Name            : fastqc.sh
+Job ID              : 20560607
+User                : a1761942
+Account             : biohub
+Cluster             : phoenix
+Partition           : cpu
+Nodes (List)        : 1 (r1n36)
+Cores               : 2
+GPUs                : 0
+State               : FAILED
+Submit              : 2019-11-25T16:02:42
+Start               : 2019-11-25T16:02:45
+End                 : 2019-11-25T16:02:48
+Walltime reserved   : 01:00:00
+Walltime elapsed (%): 00:00:03  ( 0.1% * reserved)
+CPU-time elapsed    : 0.00 core-hours
+% CPU used (Total)  :  0.22%    (0.00 core-hours)
+% User CPU (Compute):  0.03%    (0.00 core-hours)
+% System CPU (I/O)  :  0.17%    (0.00 core-hours)
+Mem reserved        : 1G/node
+% Mem used (Max)    :  0.10%    (1020.00K/node) 
+Max Disk Write      : 0.00      (r1n36)
+Max Disk Read       : 0.00      (r1n36)
+===========================================================================

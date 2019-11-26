@@ -1,0 +1,2 @@
+SyntaxError in line 28 of /fast/users/a1761942/snakes/Snakefile:
+Unexpected keyword time in rule definition (Snakefile, line 28)

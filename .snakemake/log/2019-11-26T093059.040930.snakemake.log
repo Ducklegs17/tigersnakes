@@ -1,0 +1,3 @@
+SyntaxError in line 1 of /fast/users/a1761942/snakes/rules/misc.smk:
+invalid syntax
+  File "/fast/users/a1761942/snakes/Snakefile", line 10, in <module>

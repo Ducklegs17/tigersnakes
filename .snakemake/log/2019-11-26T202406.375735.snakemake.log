@@ -1,0 +1,33 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	2	fastqc_raw
+	2
+
+[Tue Nov 26 20:24:06 2019]
+rule fastqc_raw:
+    input: 0_rawData/fastq/sample2.fastq.gz
+    output: 0_rawData/fastq/sample2_fastqc.zip, 0_rawData/fastq/sample2_fastqc.html
+    jobid: 0
+    wildcards: prefix=sample2
+    resources: time_mins=90
+
+[Tue Nov 26 20:24:12 2019]
+Finished job 0.
+1 of 2 steps (50%) done
+
+[Tue Nov 26 20:24:12 2019]
+rule fastqc_raw:
+    input: 0_rawData/fastq/sample1.fastq.gz
+    output: 0_rawData/fastq/sample1_fastqc.zip, 0_rawData/fastq/sample1_fastqc.html
+    jobid: 1
+    wildcards: prefix=sample1
+    resources: time_mins=90
+
+[Tue Nov 26 20:24:18 2019]
+Finished job 1.
+2 of 2 steps (100%) done
+Complete log: /fast/users/a1761942/snakes/.snakemake/log/2019-11-26T202406.375735.snakemake.log

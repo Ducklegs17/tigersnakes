@@ -1,0 +1,26 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	all
+	2	fastqc_raw
+	3
+
+[Tue Nov 26 10:40:46 2019]
+rule fastqc_raw:
+    input: 0_rawData/fastq/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R2.fastq.gz
+    output: 0_rawData/FastQC/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R2_fastqc.zip, 0_rawData/FastQC/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R2_fastqc.html
+    jobid: 2
+    wildcards: prefix=VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R2
+
+Waiting at most 5 seconds for missing files.
+MissingOutputException in line 27 of /fast/users/a1761942/snakes/Snakefile:
+Missing files after 5 seconds:
+0_rawData/FastQC/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R2_fastqc.zip
+0_rawData/FastQC/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R2_fastqc.html
+This might be due to filesystem latency. If that is the case, consider to increase the wait time with --latency-wait.
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /fast/users/a1761942/snakes/.snakemake/log/2019-11-26T104046.220599.snakemake.log

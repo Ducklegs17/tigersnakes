@@ -1,0 +1,76 @@
+Found /home/a1761942/fast_dir/snakes
+
+Found /home/a1761942/fast_dir/snakes/0_rawData/fastq
+Found /home/a1761942/fast_dir/snakes/0_rawData/FastQC
+
+Found /home/a1761942/fast_dir/snakes/1_trimmedData/fastq
+Found /home/a1761942/fast_dir/snakes/1_trimmedData/FastQC
+Found /home/a1761942/fast_dir/snakes/1_trimmedData/log
+
+Started analysis of VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R1.fastq.gz
+Started analysis of VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R2.fastq.gz
+Approx 5% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R2.fastq.gz
+Approx 5% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R1.fastq.gz
+Approx 10% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R2.fastq.gz
+Approx 10% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R1.fastq.gz
+Approx 15% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R2.fastq.gz
+Approx 15% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R1.fastq.gz
+Approx 20% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R2.fastq.gz
+Approx 20% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R1.fastq.gz
+Approx 25% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R2.fastq.gz
+Approx 25% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R1.fastq.gz
+Approx 30% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R2.fastq.gz
+Approx 30% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R1.fastq.gz
+Approx 35% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R2.fastq.gz
+Approx 35% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R1.fastq.gz
+Approx 40% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R2.fastq.gz
+Approx 40% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R1.fastq.gz
+Approx 45% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R2.fastq.gz
+Approx 45% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R1.fastq.gz
+Approx 50% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R2.fastq.gz
+Approx 50% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R1.fastq.gz
+Too many tiles (>500) so giving up trying to do per-tile qualities since we're probably parsing the file wrongly
+Too many tiles (>500) so giving up trying to do per-tile qualities since we're probably parsing the file wrongly
+Approx 55% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R2.fastq.gz
+Approx 55% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R1.fastq.gz
+Approx 60% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R2.fastq.gz
+Approx 60% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R1.fastq.gz
+Approx 65% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R2.fastq.gz
+Approx 65% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R1.fastq.gz
+Approx 70% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R2.fastq.gz
+Approx 70% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R1.fastq.gz
+Approx 75% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R2.fastq.gz
+Approx 75% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R1.fastq.gz
+Approx 80% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R2.fastq.gz
+Approx 80% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R1.fastq.gz
+Approx 85% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R2.fastq.gz
+Approx 85% complete for VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_R1.fastq.gz
+slurmstepd: error: *** JOB 20560840 ON r1n05 CANCELLED AT 2019-11-25T17:15:53 DUE TO TIME LIMIT ***
+
+===========================================================================
+Phoenix Job Utilisation Reporting
+===========================================================================
+Job Name            : fastqc.sh
+Job ID              : 20560840
+User                : a1761942
+Account             : biohub
+Cluster             : phoenix
+Partition           : cpu
+Nodes (List)        : 1 (r1n05)
+Cores               : 2
+GPUs                : 0
+State               : CANCELLED,TIMEOUT
+Submit              : 2019-11-25T16:15:50
+Start               : 2019-11-25T16:15:51
+End                 : 2019-11-25T17:15:54
+Walltime reserved   : 01:00:00
+Walltime elapsed (%): 01:00:03  (100.1% * reserved)
+CPU-time elapsed    : 2.00 core-hours
+% CPU used (Total)  : 98.18%    (1.97 core-hours)
+% User CPU (Compute): 94.99%    (1.90 core-hours)
+% System CPU (I/O)  :  3.19%    (0.06 core-hours)
+Mem reserved        : 1G/node
+% Mem used (Max)    : 57.82%    (592.05M/node) 
+Max Disk Write      : 10.24K    (r1n05)
+Max Disk Read       : 51.93G    (r1n05)
+===========================================================================
