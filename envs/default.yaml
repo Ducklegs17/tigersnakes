@@ -1,0 +1,16 @@
+#check anaconda cloud for new versions of stuff.
+channels:
+ - bioconda
+ - conda-forge
+ - defaults
+dependencies:
+ - fastqc=0.11.8
+ - multiqc=1.7
+ - trimmomatic=0.39
+ - pigz=2.3.4
+ - bwa=0.7.17
+ - samtools=1.9
+ - htslib=1.9
+ - freebayes=1.3.1
+ - vcftools=0.1.16
+ - bedtools=2.29.2

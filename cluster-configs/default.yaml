@@ -20,7 +20,106 @@ __default__ :
 #	time           : "00-01:40:00"
 
 # Job specific resource requirements can be passed from the rule, in the Snakefile, via the "resources" keyword
-#bwa_mem :
-#        cpus-per-task : 4
-#        mem           : "{resources.mem_mb}M"
-#        time          : "00-{resources.time_hrs}:00:00"
+bwa_mem :
+        cpus-per-task : 32
+        mem           : "10000M"
+        time          : "00-07:00:00"
+bam_sort :
+        cpus-per-task : 32
+        mem           : "96000M"
+        time          : "00-02:00:00"
+
+gunzip_ref :    
+        time          : "00-00:05:00"
+        mem           : "30000M"
+        cpus-per-task : 1
+
+bcftools_call :
+        cpus-per-task : 1
+        mem           : "5000M"
+        time          : "00-00:05:00"
+
+freebayes_call :
+        cpus-per-task : 1
+        mem           : "5000M"
+        time          : "00-01:00:00"
+
+bcftools_filter :
+        cpus-per-task : 1
+        mem           : "6000"
+        time          : "00-06:00:00"
+
+freebayes_filter :
+        cpus-per-task : 1
+        mem           : "6000"
+        time          : "00-01:00:00"
+
+gatk_call :
+        cpus-per-task : 1
+        mem           : "5000M"
+        time          : "00-01:00:00"
+picard_gathervcfs:
+        cpus-per-task : 1
+        mem           : "3000M"
+        time          : "00-00:20:00"
+
+makeChromosomeList :
+        cpus-per-task : 1
+        mem           : "500"
+        time          : "00-00:01:00"
+
+gatk_filter :
+        cpus-per-task : 1
+        mem           : "3000"
+        time          : "00-00:05:00"
+
+join_gatk_vcfs :
+        cpus-per-task : 1
+        mem           : "1000"
+        time          : "00-00:03:00"
+
+picard_mergevcfs :
+        cpus-per-task : 1
+        mem           : "3000"
+        time          : "00-00:15:00"
+
+name_sort :
+        cpus-per-task : 32
+        mem           : "96000"
+        time          : "00-03:00:00"
+fixmate :
+        cpus-per-task : 1
+        mem           : "8000"
+        time          : "00-06:00:00"
+position_sort :
+        cpus-per-task : 32
+        mem           : "96000"
+        time          : "00-03:00:00"
+markduplicates :
+        cpus-per-task : 1
+        mem           : "8000"
+        time          : "00-06:00:00"
+bedtools :
+        cpus-per-task : 1
+        mem           : "1000"
+        time          : "00-00:01:30"
+picard_dict :
+        cpus-per-task : 1
+        mem           : "1000"
+        time          : "00-00:05:00"
+fix_bam_reads :
+        cpus-per-task : 1
+        mem           : "1000"
+        time          : "00-05:00:00"
+fix_bam_mates :
+        cpus-per-task : 32
+        mem           : "96000"
+        time          : "00-00:05:00"
+promoter_regions :
+        cpus-per-task : 1
+        mem           : "1000"
+        time          : "00-00:05:00"
+split_bam :
+        cpus-per-task : 1
+        mem           : "6000"
+        time          : "00-15:00:00"
