@@ -20,5 +20,6 @@ slurm/
 *files*
 *fna
 *.log
-/log/
+/logs
 .snakemake/
+*.pdf

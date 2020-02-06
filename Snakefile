@@ -28,28 +28,34 @@ rule all:
 		"reference/GCF_900518725.1_TS10Xv2-PRI_genomic.fna",
 		expand("2_alignedData/bam/{SAMPLE}_sorted.bam", SAMPLE=SAMPLES),
 		"3_snps/gatk/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_gatk_calls.vcf",
-		"3_snps/freebayes/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_freebayes_calls.vcf",
+		"4_snps/freebayes/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_freebayes_calls.vcf",
 		"2_alignedData/bam/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_namesort.bam",
 		"2_alignedData/bam/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_fixmate.bam",
 		"2_alignedData/bam/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_coord.bam",
 		"2_alignedData/bam/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_markdup.bam",
-		"3_snps/freebayes/Q20_DP5_freebayes_variants.recode.vcf",
+		"3_snps/freebayes/DP5_freebayes_variants.recode.vcf",
 		"5_subset/pigmentation.vcf",
 		"4_subset/lipid.vcf",
 		"4_subset/growth.vcf",
 		"reference/GCF_900518725.1_TS10Xv2-PRI_genomic.dict",
 		"2_alignedData/bam/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_final.bam",
 #		"2_alignedData/bam/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_temp.bam",
-		expand("targets/{TARGETS}_promoter.bed", TARGETS=['pigmentation', 'growth', 'lipid']), 
-		expand("3_snps/bcftools/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_bcftools_calls_{NUMBER}.bcf", NUMBER=NUMBERS),
+		expand("targets/{TARGETS}p.bed", TARGETS=['pigmentation', 'growth', 'lipid']), 
+		expand("3_snp/bcftools/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_bcftools_calls_{NUMBER}.bcf", NUMBER=NUMBERS),
 		"3_snps/bcftools/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_bcftools_filtered.bcf",
 		expand("3_snps/gatk/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_gatk_calls_{NUMBER}.vcf", NUMBER=NUMBERS),
 		"2_alignedData/bam/dummy.txt",
 		"reference/chromosome.list",
-		expand("reference/chromosome.list_{NUMBER}", NUMBER=NUMBERS),	
+		expand("reference/chromosome_lists/chromosome_{NUMBER}.list", NUMBER=NUMBERS),	
+		expand("reference/bcf_chromosome_lists/chromosome_{NUMBER}.list", NUMBER=NUMBERS),
 		expand("3_snps/gatk/filtered/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_gatk_filtered_{NUMBER}.recode.vcf", NUMBER=NUMBERS),
-		"3_snps/gatk/Q20_DP5_gatk_variants.recode.vcf",
-		expand("4_subset/{tool}_{prefix}.vcf", tool=['gatk','freebayes'], prefix=['growthg', 'pigmentationg','lipidg', 'growthp', 'pigmentationp', 'lipidp']),
+		"3_snps/gatk/DP5_gatk_variants.recode.vcf",
+		expand("4_subset/{tool}_{prefix}.vcf", tool=['gatk','freebayes'], prefix=['growthg', 'pigmentationg','lipidg', 'growthp', 'pigmentationp', 'lipidp','allGenes']),
+		expand("4_snps/bcftools/dummyFiles/{NUMBER}", NUMBER=NUMBERS),
+		expand("3_snps/bcftools/vcf/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_bcftools_calls_{NUMBER}.vcf", NUMBER=NUMBERS),
+		expand("3_snps/bcftools/filtered/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_bcftools_filtered_{NUMBER}.recode.vcf", NUMBER=NUMBERS),
+		"3_snps/bcftools/DP5_bcftools_variants.recode.vcf",
+		
 
 ################
 # Rules Proper #
@@ -136,6 +142,20 @@ rule bwa_mem:
               	bwa mem -t {threads} reference/GCF_900518725.1_TS10Xv2-PRI_genomic.fna.gz {input.r1} {input.r2} | samtools view -b -@ {threads} -o {output} -  
                 """
 
+rule gunzip_ref:
+	input:
+		"reference/GCF_900518725.1_TS10Xv2-PRI_genomic.fna.gz",
+	output:
+		"reference/GCF_900518725.1_TS10Xv2-PRI_genomic.fna",
+	threads:
+		1
+	conda:
+		"envs/default.yaml",
+	shell:
+		"""
+		gunzip -c {input} > {output}
+		"""
+
 rule name_sort:
 	input:
 		"2_alignedData/bam/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001.bam",
@@ -192,38 +212,24 @@ rule markduplicates:
 		samtools markdup {input} {output}
 		"""
 
-rule split_bam:
+rule addOrReplaceReadGroups:
 	input:
-		"2_alignedData/bam/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_sorted.bam",
+		"2_alignedData/bam/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_markdup.bam",
 	output:
-		"2_alignedData/bam/dummy.txt",
-	log:
-		"logs/split_bam/VT.log",
-	conda:
-		"envs/bamtools.yaml",
+		"2_alignedData/bam/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_final.bam",
+	threads:
+		1
 	shell:
 		"""
-		(bamtools split -in {input} -reference) 2> {log}
-		touch {output}
+		module load picard/2.2.4-Java-1.8.0_121
+		java -jar $EBROOTPICARD/picard.jar AddOrReplaceReadGroups I= {input} O= {output} \
+			RGID= 1 \
+			RGLB= lib1 \
+			RGPL=illumina \
+			RGPU=unit1 \
+			RGSM=sample1 \
+			CREATE_INDEX=True
 		"""
-
-#rule bcftools_mpileup:
-#	input:
-#		ref = "reference/GCF_900518725.1_TS10Xv2-PRI_genomic.fna",
-#		bam = "2_alignedData/bam/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_final.bam",
-#
-#	output:
-#		"reference/GCF_900518725.1_TS10Xv2-PRI_genomic.mpileup",
-#	log:
-#		"logs/bcftools_mpileup/mpileup.log",
-#	threads:
-#		1
-#	conda:
-#		"envs/bcftools.yaml",
-#	shell:
-#		"""
-#		(bcftools mpileup -Ou -f {input.ref} {input.bam}) 2> {log}
-#		"""
 
 rule bcftools_call:
 	input:
@@ -231,47 +237,69 @@ rule bcftools_call:
 		ref = "reference/GCF_900518725.1_TS10Xv2-PRI_genomic.fna",
 		chromosomes = "reference/bcf_chromosome_lists/chromosome_{number}.list",
 	output:
-		"3_snps/bcftools/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_bcftools_calls_{number}.bcf",
+		bcf = "3_snps/bcftools/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_bcftools_calls_{number}.bcf",
+		dummy = "3_snps/bcftools/dummyFiles/{number}",
 	log:
-		"logs/bcftools_snp_call/{number}.log",
+		"logs/bcftools_call/vcf_{number}.log",
 	threads:
-		MAX_THREADS
+		1
 	conda:
 		"envs/bcftools.yaml",
 	shell:
 		"""
-		(bcftools mpileup -Ou -R {input.chromosomes} -f {input.ref} {input.bam} | bcftools call -mv --variants-only -Ob -o {output}) 2> {log}
+		bcftools mpileup -Ou -R {input.chromosomes} -f {input.ref} {input.bam} | bcftools call -mv --variants-only -Ob -o {output.bcf}
+		
+		echo "This is a dummy file to help check whether jobs have run properly. Snakemake wasn't deleting incomplete files." >> {output.dummy}
+		"""
+
+rule bcftools_bcfToVcf:
+	input:
+		"3_snps/bcftools/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_bcftools_calls_{number}.bcf",	
+	output:
+		"3_snps/bcftools/vcf/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_bcftools_calls_{number}.vcf",
+	log:
+		"logs/bcf2vcf/{number}.log",
+	threads:
+		1
+	conda:
+		"envs/bcftools.yaml",
+	shell:
+		"""
+		(bcftools view -Ov -o {output} {input}) 2> {log}
 		"""
 
 rule bcftools_filter:
 	input:
- 		"3_snps/bcftools/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_bcftools_calls.vcf",
+		"3_snps/bcftools/vcf/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_bcftools_calls_{number}.vcf",
 	output:
-		"3_snps/bcftools/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_bcftools_filtered.recode.vcf",
+		"3_snps/bcftools/filtered/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_bcftools_filtered_{number}.recode.vcf",
 	log:
-		"logs/bcftools_filter/VT.log",
-	threads:
-		MAX_THREADS
-	conda:
-		"envs/default.yaml",
-	shell:
-		"""
-		(vcftools --vcf {input} --minQ 20 --recode --recode-INFO-all --minDP 5 --out 3_snps/bcftools/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_bcftools_filtered) 2> {log}
-		"""
-
-rule gunzip_ref:
-	input:
-		"reference/GCF_900518725.1_TS10Xv2-PRI_genomic.fna.gz",
-	output:
-		"reference/GCF_900518725.1_TS10Xv2-PRI_genomic.fna",
+		"logs/bcftools/V_{number}.log",
 	threads:
 		1
 	conda:
 		"envs/default.yaml",
 	shell:
 		"""
-		gunzip -c {input} > {output}
+		(vcftools --vcf {input} --recode --recode-INFO-all --minDP 5 --out 3_snps/bcftools/filtered/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_bcftools_filtered_{wildcards.number}) 2> {log}
 		"""
+
+rule join_bcf_vcfs:
+        input:
+	        expand("3_snps/bcftools/filtered/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_bcftools_filtered_{number}.recode.vcf", number=NUMBERS),
+        output:
+                "3_snps/bcftools/DP5_bcftools_variants.recode.vcf",
+        log:
+                "logs/join_bcftools_vcfs/final.log",
+        threads:
+                1
+        shell:
+                """
+                sed -n '1,52444p' 3_snps/bcftools/filtered/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_bcftools_filtered_1.recode.vcf >> {output}
+
+                for i in {{1..533}}; do sed -n '52445,$p' 3_snps/bcftools/filtered/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_bcftools_filtered_${{i}}.recode.vcf >> {output}; done
+
+                """
 
 rule freebayes_call:
 	input:
@@ -294,7 +322,7 @@ rule freebayes_filter:
 	input:
 		"3_snps/freebayes/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_freebayes_calls.vcf",
 	output:
-		"3_snps/freebayes/Q20_DP5_freebayes_variants.recode.vcf",
+		"3_snps/freebayes/DP5_freebayes_variants.recode.vcf",
 	log:
 		"logs/freebayes_filter/VT.log",
 	threads:
@@ -303,7 +331,7 @@ rule freebayes_filter:
 		"envs/default.yaml",
 	shell:
 		"""
-		(vcftools --vcf {input} --minQ 20 --recode --recode-INFO-all --minDP 5 --out 3_snps/freebayes/Q20_DP5_freebayes_variants) 2> {log}
+		(vcftools --vcf {input} --recode --recode-INFO-all --minDP 5 --out 3_snps/freebayes/DP5_freebayes_variants) 2> {log}
 		"""
 
 rule picard_dict:
@@ -321,66 +349,101 @@ rule picard_dict:
 		(java -jar $EBROOTPICARD/picard.jar CreateSequenceDictionary R= {input} O= {output}) 2> {log}
 		"""
 
-rule fix_bam_reads:
-	input:
-		"2_alignedData/bam/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_markdup.bam",
-	output:
-		"2_alignedData/bam/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_final.bam",
-	threads:
-		1
-	shell:
-		"""
-		module load picard/2.2.4-Java-1.8.0_121
-		java -jar $EBROOTPICARD/picard.jar AddOrReplaceReadGroups I= {input} O= {output} \
-			RGID= 1 \
-			RGLB= lib1 \
-			RGPL=illumina \
-			RGPU=unit1 \
-			RGSM=sample1 \
-			CREATE_INDEX=True
-		"""
-#extracts all contig names from GCF file and creates files with 500 contigs per file. This allows gatk variant calling to be parallelised.
-#Doesn't work.
- 
-rule makeChromosomeList:
+#extracts all contig names from GCF file and creates files with 500 contigs per file. This allows gatk and bcftools variant calling to be parallelised. 
+rule gatk_make_region_files:
 	input:
 		"reference/GCF_900518725.1_TS10Xv2-PRI_genomic.fna",
 	output:
-		"reference/chromosome.list"
+		list = "reference/chromosome.list",
+		files = expand("reference/chromosome_lists/chromosome_{num}.list", num=NUMBERS),
 	threads:
 		1
 	shell:
 		"""
-		set +u; bash chromosome_split.sh; set -u;
-#		mkdir -p reference/chromosome_lists
-#		grep '^>' {input} | cut -d " " -f1 | cut -c2- > {output}
-#		bash chromosome_split.sh
+		mkdir -p reference/chromosome_lists
+		grep '^>' {input} | cut -d " " -f1 | cut -c2- > {output.list}	
 
-#		split -d -l 500 {output} reference/chromosome_lists/chromosome_
-#		rename -v -- 's/$/.list/' reference/chromosome_lists/chromosome_*
-	
-#		count=1
-#
-#		for run in {1..66}
-#		do
-#			sed -n ${run}p {output} > /reference/chromosome_lists/chromosome_${count}.list
-#			((count=count+1))
-#		done
-#
-#		for run in {67..52066..500}
-#		do
-#		end=$((run+499))
-#			sed -n "${run},${end}p" {output} > reference/chromosome_lists/chromosome_${count}.list
-#			((count=count+1))
-#		done
+		count=1
+
+		for run in {{1..100}}
+		do
+			sed -n ${{run}}p {output.list} > reference/chromosome_lists/chromosome_${{count}}.list
+			((count=count+1))
+		done
+
+
+		for run in {{101..1000..10}}
+		do
+		end=$((run+9))
+			sed -n "${{run}},${{end}}p" reference/chromosome.list > reference/chromosome_lists/chromosome_${{count}}.list
+			((count=count+1))
+		done
+
+		for run in {{1001..52414..150}}
+		do
+		end=$((run+150))
+			sed -n "${{run}},${{end}}p" reference/chromosome.list > reference/chromosome_lists/chromosome_${{count}}.list
+			((count=count+1))
+		done
 		"""
 
-#call gatk with subsets of contigs to parallelise process. 
+rule bcf_make_region_files:
+	input:
+		chr = "reference/chromosome.list",
+		dict = "reference/GCF_900518725.1_TS10Xv2-PRI_genomic.dict",
+	output:
+		files = expand("reference/bcf_chromosome_lists/chromosome_{num}.list", num=NUMBERS),
+	threads:
+		1
+	shell:
+		"""
+		cp {input.chr} reference/name.temp
+#Add a column of 1s to name.temp
+		sed -i "s/$/\t1/" reference/name.temp
+
+#Extract lengths from .dict to length.temp
+		awk '/LN/ {{print $3}}' {input.dict} | grep -P -o "[0-9]+" > reference/length.temp
+
+#Join the temp files together as final file
+		paste reference/name.temp reference/length.temp > reference/chromosome_bcf.list
+
+#delete temp files
+		rm reference/name.temp
+		rm reference/length.temp
+
+#make a new folder
+		mkdir -p reference/bcf_chromosome_lists
+
+		count=1
+#Split files
+		for run in {{1..100}}
+		do
+			sed -n ${{run}}p reference/chromosome_bcf.list > reference/bcf_chromosome_lists/chromosome_${{count}}.list
+			((count=count+1))
+		done
+
+		for run in {{101..1000..10}}
+		do
+		end=$((run+9))
+			sed -n "${{run}},${{end}}p" reference/chromosome_bcf.list > reference/bcf_chromosome_lists/chromosome_${{count}}.list
+			((count=count+1))
+		done
+
+		for run in {{1001..52414..150}}
+		do
+		end=$((run+150))
+			sed -n "${{run}},${{end}}p" reference/chromosome_bcf.list > reference/bcf_chromosome_lists/chromosome_${{count}}.list
+			((count=count+1))
+		done
+
+		"""
+
 rule gatk_call:
 	input:
 		bam = "2_alignedData/bam/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_final.bam",
 		ref = "reference/GCF_900518725.1_TS10Xv2-PRI_genomic.fna",
 		chromosome = "reference/chromosome_lists/chromosome_{number}.list",
+	output:
 		vcf = "3_snps/gatk/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_gatk_calls_{number}.vcf",
 	log:
 		"logs/gatk_call/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_{number}.log",
@@ -392,41 +455,6 @@ rule gatk_call:
 		"""
 		(gatk HaplotypeCaller -L {input.chromosome} -R {input.ref} -I {input.bam} -O {output.vcf}) 3> {log}
 
-		"""
-
-#rule picard_gathervcfs:
-#	input:
-#		expand("3_snps/gatk/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_gatk_calls_{number}.g.vcf", number=['531', '532', '533']),
-#	output:
-#		"3_snps/gatk/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_gatk_calls_total.g.vcf",
-#	log:
-#		"logs/picard_gathervcfs/VT_final.log",
-#	params:
-#		files = lambda wildcards, input: " I= ".join(input)
-#	threads:
-#		MAX_THREADS
-#	shell:
-#		"""
-#		module load picard/2.2.4-Java-1.8.0_121
-#		(java -jar $EBROOTPICARD/picard.jar GatherVcfs I= {params.files} O= {output}) 2> {log}
-#		"""
-
-rule picard_mergevcfs:
-	input:
-		expand("3_snps/gatk/filtered/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_gatk_filtered_{number}.recode.vcf", number=['1', '2', '3']),
-
-	output:
-		"3_snps/gatk/filtered/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_gatk_calls_total.vcf.gz",
-	log:
-		"logs/picard_gathervcfs/VT_total.log",
-	params:
-		files = lambda wildcards, input: " I= ".join(input)
-	threads:
-		MAX_THREADS
-	shell:
-		"""
-		module load picard/2.2.4-Java-1.8.0_121
-		(java -jar $EBROOTPICARD/picard.jar MergeVcfs I= {params.files} O= {output}) 2> {log}
 		"""
 
 rule gatk_filter:
@@ -442,14 +470,14 @@ rule gatk_filter:
 		"envs/default.yaml",
 	shell:
 		"""
-		(vcftools --vcf {input} --minQ 20 --recode --recode-INFO-all --minDP 5 --out 3_snps/gatk/filtered/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_gatk_filtered_{wildcards.number}) 2> {log} 
+		(vcftools --vcf {input} --recode --recode-INFO-all --minDP 5 --out 3_snps/gatk/filtered/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_gatk_filtered_{wildcards.number}) 2> {log} 
 		"""
 
 rule join_gatk_vcfs:
 	input:
 		expand("3_snps/gatk/filtered/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_gatk_filtered_{number}.recode.vcf", number=NUMBERS),
 	output:
-		"3_snps/gatk/Q20_DP5_gatk_variants.recode.vcf",
+		"3_snps/gatk/DP5_gatk_variants.recode.vcf",
 	log:
 		"logs/join_gatk_vcfs/final.log",
 	threads:
@@ -468,14 +496,18 @@ rule join_gatk_vcfs:
 #======================================================================
 rule promoter_regions:
 	input:
-		"targets/{prefix}_genes.bed",
+		"targets/{prefix}g.bed",
 	output:
-		"targets/{prefix}_promoter.bed",
+		"targets/{prefix}p.bed",
 	threads:
 		1
 	shell:
 		"""
-		awk '{if($2 > 15000) {$3=$2; $2=$2-15000; print;} else {$3=$2; $2=1; print;}}' {input} > {output}
+		awk "{{if(\$2<15000) print \$1,"1",\$2,\$4,\$5,\$6; else print \$1, \$2-15000,\$2,\$4,\$5,\$6}}" OFS="\\t" targets/growthg.bed > targets/growthp.bed
+
+		awk "{{if(\$2<15000) print \$1,"1",\$2,\$4,\$5,\$6; else print \$1, \$2-15000,\$2,\$4,\$5,\$6}}" OFS="\\t" targets/pigmentationg.bed > targets/pigmentationp.bed
+
+		awk "{{if(\$2<15000) print \$1,"1",\$2,\$4,\$5,\$6; else print \$1, \$2-15000,\$2,\$4,\$5,\$6}}" OFS="\\t" targets/lipidg.bed > targets/lipidp.bed		
 		"""
 
 #===========================================
@@ -483,8 +515,8 @@ rule promoter_regions:
 #===========================================
 rule bedtools:
 	input:
-		bed = expand("targets/{{prefix}}.bed", prefix=['pigmentationg','lipidg','growthg','pigmentationp','lipidp','growthp']),
-		vcf = expand("3_snps/{{tool}}/Q20_DP5_{{tool}}_variants.recode.vcf", tool=['freebayes','gatk']),
+		bed = expand("targets/{{prefix}}.bed", prefix=['pigmentationg','lipidg','growthg','pigmentationp','lipidp','growthp','allGenes']),
+		vcf = expand("3_snps/{{tool}}/DP5_{{tool}}_variants.recode.vcf", tool=['freebayes','gatk','bcftools']),
 	output:
 		"4_subset/{tool}_{prefix}.vcf",
 	threads:

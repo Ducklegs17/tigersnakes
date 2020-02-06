@@ -36,8 +36,13 @@ gunzip_ref :
 
 bcftools_call :
         cpus-per-task : 1
-        mem           : "5000M"
-        time          : "00-00:05:00"
+        mem           : "3000M"
+        time          : "00-00:50:00"
+
+bcftools_bcfToVcf :
+        cpus-per-task : 1
+        mem           : "500"
+        time          : "00-00:03:00"
 
 freebayes_call :
         cpus-per-task : 1
@@ -46,13 +51,18 @@ freebayes_call :
 
 bcftools_filter :
         cpus-per-task : 1
-        mem           : "6000"
-        time          : "00-06:00:00"
+        mem           : "500"
+        time          : "00-00:02:00"
+
+join_bcf_vcfs :
+        cpus-per-task : 1
+        mem           : "500"
+        time          : "00-00:04:00"
 
 freebayes_filter :
         cpus-per-task : 1
-        mem           : "6000"
-        time          : "00-01:00:00"
+        mem           : "3000"
+        time          : "00-03:00:00"
 
 gatk_call :
         cpus-per-task : 1
@@ -63,15 +73,20 @@ picard_gathervcfs:
         mem           : "3000M"
         time          : "00-00:20:00"
 
-makeChromosomeList :
+gatk_make_region_files :
         cpus-per-task : 1
         mem           : "500"
         time          : "00-00:01:00"
 
+bcf_make_region_files :
+        cpus-per-task : 1
+        mem           : "250"
+        time          : "00-00:02:00"
+
 gatk_filter :
         cpus-per-task : 1
-        mem           : "3000"
-        time          : "00-00:05:00"
+        mem           : "500"
+        time          : "00-00:01:00"
 
 join_gatk_vcfs :
         cpus-per-task : 1
@@ -107,7 +122,7 @@ picard_dict :
         cpus-per-task : 1
         mem           : "1000"
         time          : "00-00:05:00"
-fix_bam_reads :
+addOrReplaceReadGroups :
         cpus-per-task : 1
         mem           : "1000"
         time          : "00-05:00:00"
@@ -117,8 +132,8 @@ fix_bam_mates :
         time          : "00-00:05:00"
 promoter_regions :
         cpus-per-task : 1
-        mem           : "1000"
-        time          : "00-00:05:00"
+        mem           : "200"
+        time          : "00-00:01:00"
 split_bam :
         cpus-per-task : 1
         mem           : "6000"
