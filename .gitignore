@@ -19,3 +19,6 @@ slurm/
 *cache*
 *files*
 *fna
+*.log
+/log/
+.snakemake/
