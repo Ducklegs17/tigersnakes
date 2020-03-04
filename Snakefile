@@ -235,7 +235,7 @@ rule bcftools_call:
 	input:
 		bam = "2_alignedData/bam/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_final.bam",
 		ref = "reference/GCF_900518725.1_TS10Xv2-PRI_genomic.fna",
-		chromosomes = "reference/bcf_chromosome_lists/chromosome_{number}.list",
+		chromosomes = ancient("reference/bcf_chromosome_lists/chromosome_{number}.list"),
 	output:
 		bcf = "3_snps/bcftools/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_bcftools_calls_{number}.bcf",
 		dummy = "3_snps/bcftools/dummyFiles/{number}",
@@ -440,9 +440,9 @@ rule bcf_make_region_files:
 
 rule gatk_call:
 	input:
-		bam = "2_alignedData/bam/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_final.bam",
-		ref = "reference/GCF_900518725.1_TS10Xv2-PRI_genomic.fna",
-		chromosome = "reference/chromosome_lists/chromosome_{number}.list",
+		bam = ancient("2_alignedData/bam/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_final.bam"),
+		ref = ancient("reference/GCF_900518725.1_TS10Xv2-PRI_genomic.fna"),
+		chromosome = ancient("reference/chromosome_lists/chromosome_{number}.list"),
 	output:
 		vcf = "3_snps/gatk/VT211_HG2W3DSXX_GATTCTGC-GACGAGAG_L001_gatk_calls_{number}.vcf",
 	log:

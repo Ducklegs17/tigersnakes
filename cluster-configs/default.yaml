@@ -117,7 +117,7 @@ markduplicates :
 bedtools :
         cpus-per-task : 1
         mem           : "1000"
-        time          : "00-00:01:30"
+        time          : "00-00:10:00"
 picard_dict :
         cpus-per-task : 1
         mem           : "1000"
