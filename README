@@ -1,0 +1,72 @@
+
+##Explanation of rule names:
+
+**bwa_index:**
+Indexes reads. Necessary for alignment.
+
+**cutadapt:**
+Removes poly-G tails.
+
+**bwa_mem:**
+Aligns reads to reference genome.
+
+**name_sort:**
+Sorts aligned reads in .bam by name. Necessary for fixmate.
+
+**fixmate:**
+Fills in mate coordinates and mate related flags (requires a name-sorted bam). Necessary for compatibility with gatk.
+
+**position_sort:**
+Sorts by location (necessary for markduplicates).
+
+**markduplicates:**
+Marks duplicate alignments (necessary for Gatk compatibility).
+
+**gunzip_ref:**
+Unzips the reference genome.
+
+**freebayes_call:**
+Calls variants using freebayes.
+
+**freebayes_filter:**
+Filters freebayes variants using vcftools.
+
+**addOrReplaceReadGroups:**
+Adds read group tags (required for Gatk).
+
+**bcftools_call:**
+Calls variants with bcftools.
+
+**bcftools_bcfToVcf:**
+Converts bcf file to vcf.
+
+**bcftools_filter:**
+Filters bcftools variants using vcftools.
+
+**join_bcf_vcfs:**
+Joins bcftools .vcf files into a single vcf.
+
+**promoter_regions:**
+Creates .bed files describing promoter regions of the genes of interest from the .bed files describing the coordinates of the genes of interest creates in R. 
+
+**picard_dict:**
+Creates a sequence dictionary. Used to create region files necessary for parallelising bcftools_call. 
+
+**gatk_make_region_files:**
+Makes files used as input into gatk_call to parallelise gatk_call.
+
+**bcf_make_region_files:**
+Edits gatk region files to make files compatible with bcftools for variant calling.
+
+**gatk_call:**
+Call variants with gatk.
+
+**gatk_filter:**
+Filter variants called with Gatk using vcftools.
+
+**join_gatk_vcfs:**
+Join resulting gatk .vcf files together into a single vcf. 
+
+**bedtools:**
+Overlaps vcf files (variants) with .bed files specifying target genes.
+
