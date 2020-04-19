@@ -382,12 +382,12 @@ datatable(lipid_gene_snp_density)
 datatable(pigment_gene_snp_density)
 ```
 
-Genes with the greatest non-synonymous variant density are written to tsv files.
+Genes with the non-synonymous variant density greater than 0 are written to tsv files.
 
 ```{r}
-write_tsv(growth_gene_snp_density, "~/fast_dir/snakes/results/growth_gene_snp_density.tsv", append=FALSE, col_names=TRUE)
-write_tsv(lipid_gene_snp_density, "~/fast_dir/snakes/results/lipid_gene_snp_density.tsv", append=FALSE, col_names=TRUE)
-write_tsv(pigment_gene_snp_density, "~/fast_dir/snakes/results/pigment_gene_snp_density.tsv", append=FALSE, col_names=TRUE)
+write_tsv(growth_gene_snp_density, "~/fast_dir/snakes/results/growth_variant_density.tsv", append=FALSE, col_names=TRUE)
+write_tsv(lipid_gene_snp_density, "~/fast_dir/snakes/results/lipid_variant_density.tsv", append=FALSE, col_names=TRUE)
+write_tsv(pigment_gene_snp_density, "~/fast_dir/snakes/results/pigmentation_variant_density.tsv", append=FALSE, col_names=TRUE)
 ```
 
 # Identify genes without non-synonymous mutations
@@ -447,9 +447,9 @@ datatable(noVar_pigmentation, rownames = FALSE)
 All genes without coding variants are written to tsv files.
 
 ```{r}
-write_tsv(noVar_growth, "~/fast_dir/snakes/results/genes_no_variants_growth.tsv", append=FALSE, col_names=TRUE)
-write_tsv(noVar_lipid, "~/fast_dir/snakes/results/genes_no_variants_lipid.tsv", append=FALSE, col_names=TRUE)
-write_tsv(noVar_pigmentation, "~/fast_dir/snakes/results/genes_no_variants_pigmentation.tsv", append=FALSE, col_names=TRUE)
+write_tsv(noVar_growth, "~/fast_dir/snakes/results/growth_without_variants.tsv", append=FALSE, col_names=TRUE)
+write_tsv(noVar_lipid, "~/fast_dir/snakes/results/lipid_without_variants.tsv", append=FALSE, col_names=TRUE)
+write_tsv(noVar_pigmentation, "~/fast_dir/snakes/results/pigmentation_without_variants.tsv", append=FALSE, col_names=TRUE)
 
 ```
 

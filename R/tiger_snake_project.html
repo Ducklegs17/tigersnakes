@@ -851,9 +851,9 @@ myFormatPromoter &lt;- function(index) {
 df_list_high_p &lt;- lapply(1:3, FUN=myFormatPromoter)
 
 #Writing .tsv files
-write_tsv(df_list_high_p[[1]], &quot;~/fast_dir/snakes/results/Growth_promoter_variants.tsv&quot;, append=FALSE, col_names=TRUE)
-write_tsv(df_list_high_p[[2]], &quot;~/fast_dir/snakes/results/LipidMetabolism_promoter_variants.tsv&quot;, append=FALSE, col_names=TRUE)
-write_tsv(df_list_high_p[[3]], &quot;~/fast_dir/snakes/results/Pigmentation_promoter_variants.tsv&quot;, append=FALSE, col_names=TRUE)</code></pre>
+write_tsv(df_list_high_p[[1]], &quot;~/fast_dir/snakes/results/growth_promoter_variants.tsv&quot;, append=FALSE, col_names=TRUE)
+write_tsv(df_list_high_p[[2]], &quot;~/fast_dir/snakes/results/lipid_promoter_variants.tsv&quot;, append=FALSE, col_names=TRUE)
+write_tsv(df_list_high_p[[3]], &quot;~/fast_dir/snakes/results/pigmentation_promoter_variants.tsv&quot;, append=FALSE, col_names=TRUE)</code></pre>
 <p>Variant density calculations (in a later section) require the total number of variants within the genes of interest.</p>
 <pre class="r"><code>our_gene_variants &lt;- (nrow(unique(df_list_high_g[[1]][c(&quot;start&quot;, &quot;scaffold&quot;)]))
                       + nrow(unique(df_list_high_g[[2]][c(&quot;start&quot;, &quot;scaffold&quot;)]))
@@ -1279,9 +1279,9 @@ myFormatGenes &lt;- function(index) {
 df_list_high_g &lt;- lapply(1:3, FUN=myFormatGenes)
 
 #Save remaining variants to .tsv
-write_tsv(df_list_high_g[[1]], &quot;~/fast_dir/snakes/results/Growth_Gene_Variants.tsv&quot;, append=FALSE, col_names=TRUE)
-write_tsv(df_list_high_g[[2]], &quot;~/fast_dir/snakes/results/LipidMetabolism_Gene_Variants.tsv&quot;, append=FALSE, col_names=TRUE)
-write_tsv(df_list_high_g[[3]], &quot;~/fast_dir/snakes/results/Pigmentation_Gene_Variants.tsv&quot;, append=FALSE, col_names=TRUE)</code></pre>
+write_tsv(df_list_high_g[[1]], &quot;~/fast_dir/snakes/results/growth_nonsynonymous_variants.tsv&quot;, append=FALSE, col_names=TRUE)
+write_tsv(df_list_high_g[[2]], &quot;~/fast_dir/snakes/results/lipid_nonsynonymous_variants.tsv&quot;, append=FALSE, col_names=TRUE)
+write_tsv(df_list_high_g[[3]], &quot;~/fast_dir/snakes/results/pigmentation_nonsynonymous_variants.tsv&quot;, append=FALSE, col_names=TRUE)</code></pre>
 </div>
 <div id="variant-density-comparison" class="section level2">
 <h2><span class="header-section-number">3.4</span> Variant Density Comparison</h2>
