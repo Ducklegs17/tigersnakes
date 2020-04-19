@@ -1,0 +1,460 @@
+---
+title: "Tiger Snake Variant Identification - Part 2"
+author: "Chelsea Matthews"
+date: "2 March 2020"
+output: 
+  html_document:
+      code_folding: "show"
+      number_sections: TRUE
+      toc: TRUE
+      toc_float: TRUE
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+											results = "asis",
+											message = FALSE, warning = FALSE,
+											error = FALSE)
+```
+
+# Introduction
+
+The second part of this project is the identification of genes with the greatest non-synonymous variant density. In general, each non-synonymous SNP is mapped to its containing gene and the total number of counts for each gene are calculated. Then, the length of each gene is calculated (the sum of the width of each CDS region within that gene) and the density of variants per kbp is found. 
+
+Genes that contain zero non-synonymous variants are also identified. 
+
+# Creating necessary objects
+
+Firstly, required Packages are loaded. 
+
+```{r loadPackages}
+library(knitr)
+library(tidyverse)
+library(ngsReports)
+library(magrittr)
+library(pander)
+library(dplyr)
+library(SeqGSEA)
+library(GenomicFeatures)
+library(vcfR)
+library(rtracklayer)
+library(VariantAnnotation)
+library(SeqArray)
+library(gdsfmt)
+library(plyr)
+library(Repitools)
+library(kableExtra)
+library(Biostrings)
+library(rnaseqWrapper)
+library(seqinr)
+library(Rsamtools)
+library(biomaRt)
+library(AnnotationHub)
+library(DT)
+```
+
+A Txdb object is created from the .gff and the genes are extracted. 
+
+```{r}
+txdb <- makeTxDbFromGFF("~/fast_dir/snakes/reference/GCF_900518725.1_TS10Xv2-PRI_genomic.gff", format="gff")
+genes <- genes(txdb)
+```
+
+Annotation Hub is loaded using the species "Homo sapiens" to match the provided ensembl IDs. 
+
+```{r message=FALSE, results='hide'}
+ah <- AnnotationHub()
+ah %>%
+  subset(species == "Homo sapiens") %>%
+  subset(dataprovider == "Ensembl") %>%
+  subset(rdataclass == "EnsDb")
+ensDb <- ah[["AH64923"]]
+genesGR <- genes(ensDb)
+hsEns2Sym <- mcols(genesGR) %>% 
+  as_tibble() %>% 
+  dplyr::select(gene_id, gene_name)
+
+#Genes of interest are read in
+pigmentation_genes <- read.table("~/fast_dir/snakes/targets/Pigmentation_ensembl.txt") %>%
+  set_colnames("gene_id") %>%
+  as_tibble()
+growth_genes <- read.table("~/fast_dir/snakes/targets/Growth_genes_ensembl.txt") %>%
+  set_colnames("gene_id") %>%
+  as_tibble()
+lipid_genes <- read.table("~/fast_dir/snakes/targets/Lipid_metabolism_ensembl.txt") %>%
+  set_colnames("gene_id") %>%
+  as_tibble()
+
+#Ensembl Gene IDs are converted to Gene Symbols
+pigmentation_genes <- pigmentation_genes %>% left_join(hsEns2Sym)
+growth_genes <- growth_genes %>% left_join(hsEns2Sym)
+lipid_genes <- lipid_genes %>% left_join(hsEns2Sym)
+
+#Create gene subsets using gene locations from txdb object. 
+pigmentation_set <- subset(genes, gene_id %in% pigmentation_genes$gene_name)
+growth_set <- subset(genes, gene_id %in% growth_genes$gene_name)
+lipid_set <- subset(genes, gene_id %in% lipid_genes$gene_name)
+```
+
+The output list of high confidence variants from Part 1 of the assessment are read in and synonymous variants are removed. 
+
+```{r}
+load('~/fast_dir/snakes/HighConfidenceVariants.RData')
+df_list_high_g <- lapply(df_list_high_g, subset, synonymous == "n")
+```
+
+GRanges objects are created for each of the three sets of genes of interest. These objects contain only the CDS regions of each gene as well as a GENEID field for each CDS entry. They are then combined into a list. 
+
+```{r}
+
+#Create three gRanges objects containing CDS regions and the associated gene name for each set of genes of interest
+growth_txdb <- select(txdb, 
+                      keys = growth_set$gene_id, 
+                      columns = c("CDSCHROM", "CDSSTART",
+                                  "CDSEND","CDSSTRAND","CDSID"), 
+                      keytype = "GENEID")
+
+lipid_txdb <- select(txdb, 
+                     keys = lipid_set$gene_id, 
+                     columns = c("CDSCHROM", "CDSSTART", 
+                                 "CDSEND","CDSSTRAND","CDSID"), 
+                     keytype = "GENEID")
+
+pigmentation_txdb <- select(txdb, 
+                            keys = pigmentation_set$gene_id, 
+                            columns = c("CDSCHROM", "CDSSTART",
+                                        "CDSEND","CDSSTRAND","CDSID"), 
+                            keytype = "GENEID")
+
+gr_growth_cds_gene <- makeGRangesFromDataFrame(growth_txdb,
+                         keep.extra.columns=TRUE,
+                         ignore.strand=FALSE,
+                         seqinfo=NULL,
+                         seqnames.field=c("CDSCHROM"),
+                         start.field="CDSSTART",
+                         end.field=c("CDSEND"),
+                         strand.field="CDSSTRAND",
+                         starts.in.df.are.0based=FALSE)
+
+gr_lipid_cds_gene <- makeGRangesFromDataFrame(lipid_txdb,
+                         keep.extra.columns=TRUE,
+                         ignore.strand=FALSE,
+                         seqinfo=NULL,
+                         seqnames.field=c("CDSCHROM"),
+                         start.field="CDSSTART",
+                         end.field=c("CDSEND"),
+                         strand.field="CDSSTRAND",
+                         starts.in.df.are.0based=FALSE)
+
+gr_pigmentation_cds_gene <- makeGRangesFromDataFrame(pigmentation_txdb,
+                         keep.extra.columns=TRUE,
+                         ignore.strand=FALSE,
+                         seqinfo=NULL,
+                         seqnames.field=c("CDSCHROM"),
+                         start.field="CDSSTART",
+                         end.field=c("CDSEND"),
+                         strand.field="CDSSTRAND",
+                         starts.in.df.are.0based=FALSE)
+
+gr_our_genes <- list(gr_growth_cds_gene,
+                     gr_lipid_cds_gene,
+                     gr_pigmentation_cds_gene)
+```
+
+Only one entry for each identified variant is required so duplicates (introduced for processing in part 1) are removed. Dataframes containing non-synonymous variants are then converted to GRanges objects and combined into a list. 
+
+```{r}
+#Extract only the unique snps
+df_list_high_g[[1]] <- unique(df_list_high_g[[1]][c("start", "scaffold")])
+df_list_high_g[[2]] <- unique(df_list_high_g[[2]][c("start", "scaffold")])
+df_list_high_g[[3]] <- unique(df_list_high_g[[3]][c("start", "scaffold")])
+
+#Add an end column with same position as start
+df_list_high_g[[1]] <- df_list_high_g[[1]] %>% mutate(end = start)
+df_list_high_g[[2]] <- df_list_high_g[[2]] %>% mutate(end = start)
+df_list_high_g[[3]] <- df_list_high_g[[3]] %>% mutate(end = start)
+
+gr_high_growth_g <- makeGRangesFromDataFrame(df_list_high_g[[1]],
+                         keep.extra.columns=TRUE,
+                         ignore.strand=FALSE,
+                         seqinfo=NULL,
+                         seqnames.field=c("scaffold"),
+                         start.field="start",
+                         end.field=c("end"),
+                         strand.field="strand",
+                         starts.in.df.are.0based=FALSE)
+
+gr_high_lipid_g <- makeGRangesFromDataFrame(df_list_high_g[[2]],
+                         keep.extra.columns=TRUE,
+                         ignore.strand=FALSE,
+                         seqinfo=NULL,
+                         seqnames.field=c("scaffold"),
+                         start.field="start",
+                         end.field=c("end"),
+                         strand.field="strand",
+                         starts.in.df.are.0based=FALSE)
+
+gr_high_pigmentation_g <- makeGRangesFromDataFrame(df_list_high_g[[3]],
+                         keep.extra.columns=TRUE,
+                         ignore.strand=FALSE,
+                         seqinfo=NULL,
+                         seqnames.field=c("scaffold"),
+                         start.field="start",
+                         end.field=c("end"),
+                         strand.field="strand",
+                         starts.in.df.are.0based=FALSE)
+
+gr_list_genes <- list(gr_high_growth_g,
+                      gr_high_lipid_g,
+                      gr_high_pigmentation_g)
+```
+
+# Find overlaps between variants and CDS regions
+
+Overlaps between the non-synonymous variants and the CDS regions of the genes of interest are found. 
+
+```{r}
+hits_high_growth_g_genes <- as.data.frame(findOverlaps(gr_list_genes[[1]], gr_our_genes[[1]], type="any"))
+hits_high_lipid_g_genes <- as.data.frame(findOverlaps(gr_list_genes[[2]], gr_our_genes[[2]], type="any"))
+hits_high_pigmentation_g_genes <- as.data.frame(findOverlaps(gr_list_genes[[3]], gr_our_genes[[3]], type="any"))
+
+hit_list_genes <- list(hits_high_growth_g_genes,
+                       hits_high_lipid_g_genes,
+                       hits_high_pigmentation_g_genes)
+
+```
+
+The hits tables generated above (example below) describes by row number which CDS region each non-synonymous SNP maps.  
+
+```{r echo=FALSE}
+hits <- head(hit_list_genes[[1]])
+
+kable(hits, col.names = c("Query SNP Row No.","Row No. of CDS region that contains Query SNP")) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F)
+
+```
+
+Each CDS region in the CDS GRanges objects also contains the GENEID associated with that region. This information is used to determine how many variants each gene contains. 
+
+```{r}
+hit_list_genes[[1]]$gene <- NA 
+hit_list_genes[[2]]$gene <- NA
+hit_list_genes[[3]]$gene <- NA
+
+hit_list_genes[[1]]$cdsid <- NA 
+hit_list_genes[[2]]$cdsid <- NA
+hit_list_genes[[3]]$cdsid <- NA
+
+hit_list_genes[[1]]$rng <- NA 
+hit_list_genes[[2]]$rng <- NA
+hit_list_genes[[3]]$rng <- NA
+
+#GeneID and CDSID column is added for each hit
+for(index in 1:3){
+  for (row in 1:nrow(hit_list_genes[[index]])) {     
+    hit_list_genes[[index]][row,3] <-
+      gr_our_genes[[index]][hit_list_genes[[index]][row,"subjectHits"],]$GENEID
+    hit_list_genes[[index]][row,4] <-
+      gr_our_genes[[index]][hit_list_genes[[index]][row,"subjectHits"],]$CDSID
+    hit_list_genes[[index]][row,5] <- toString(range(gr_our_genes[[index]][hit_list_genes[[index]][row,"subjectHits"]]))
+  }
+}
+```
+
+Some SNPS appear to map to more than one cds region. For example, the table below shows that the 10th SNP in the pigmentation set maps to three separate CDSIDS (4646, 4647 and 4648) in the gene TRPC1. Note that the location of each of these CDSIDs is exactly the same. 
+
+```{r echo=FALSE}
+dups <- head(hit_list_genes[[3]], n=15)
+
+kable(dups, col.names = c("Query SNP Row No.","Row No. of CDS region that contains Query SNP","Gene Name", "CDSID","Location")) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F) %>%
+  row_spec(10:12, bold = T, color = "white", background = "#0e5eb3")
+
+```
+
+ 
+
+```{r echo=FALSE, eval=FALSE}
+r1 <- subset(gr_our_genes[[3]], CDSID == "4646")
+r2 <- subset(gr_our_genes[[3]], CDSID == "4647")
+r3 <- subset(gr_our_genes[[3]], CDSID == "4648")
+
+kable(c(r1,r2,r3)) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F) %>%
+   column_spec(7, bold = T, color = "white", background = "#0e5eb3")
+
+```
+
+However, when the GRanges object is subset to include only CDS regions associated with the gene TRPC1, only the first (CDSID 4646) appears.  
+
+```{r echo=FALSE}
+cds <- head(subset(gr_our_genes[[3]], GENEID == "TRPC1"))
+
+kable(cds) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F) %>%
+  row_spec(1:1, bold = T, color = "white", background = "#0e5eb3")
+
+```
+
+It should also be noted that not all SNPs that map to multiple CDSIDs are mapping to CDS regions that are exactly the same size. For example, in the growth set the highlighted SNP appears in two separate CDS regions with different starting positions and the same ending position.
+
+```{r}
+dups <- hit_list_genes[[1]][80:90,]
+
+kable(dups) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F) %>%
+  row_spec(9:10, bold = T, color = "white", background = "#0e5eb3")
+```
+
+
+
+These duplicate matches are removed so that each SNP is counted only once for CDS regions that are exactly the same.
+
+```{r}
+# Find unique hit_list_genes with query and gene column.
+hit_list_genes[[1]] <- unique(hit_list_genes[[1]][c("queryHits", "gene","rng")])
+hit_list_genes[[2]] <- unique(hit_list_genes[[2]][c("queryHits", "gene","rng")])
+hit_list_genes[[3]] <- unique(hit_list_genes[[3]][c("queryHits", "gene","rng")])
+```
+
+
+
+```{r}
+
+#calculate the total number of hits for each gene
+hit_list_genes[[1]] <- as.data.frame(table(hit_list_genes[[1]]$gene))
+hit_list_genes[[2]] <- as.data.frame(table(hit_list_genes[[2]]$gene))
+hit_list_genes[[3]] <- as.data.frame(table(hit_list_genes[[3]]$gene))
+```
+
+# Calculate variant density
+
+The total length of the cds region of each gene is then calculated so that variant density can be calculated. 
+
+```{r}
+hit_list_genes[[1]]$cds_length <- NA 
+hit_list_genes[[2]]$cds_length <- NA
+hit_list_genes[[3]]$cds_length <- NA
+
+#get total length of all cds regions
+for(index in 1:3){
+  for (row in 1:nrow(hit_list_genes[[index]])) {            
+    hit_list_genes[[index]][row,]$cds_length <- 
+      sum(width(subset(gr_our_genes[[index]], GENEID == hit_list_genes[[index]][row,"Var1"])))
+  }
+}
+
+#make a new column for variants per kbp of cds
+hit_list_genes[[1]] <- mutate(hit_list_genes[[1]], vars_per_kbp = (Freq/(cds_length/1000)))
+hit_list_genes[[2]] <- mutate(hit_list_genes[[2]], vars_per_kbp = (Freq/(cds_length/1000)))
+hit_list_genes[[3]] <- mutate(hit_list_genes[[3]], vars_per_kbp = (Freq/(cds_length/1000)))
+
+#sorting by variant density
+hit_list_genes[[1]] <- hit_list_genes[[1]][order(-hit_list_genes[[1]]$vars_per_kbp),]
+hit_list_genes[[2]] <- hit_list_genes[[2]][order(-hit_list_genes[[2]]$vars_per_kbp),]
+hit_list_genes[[3]] <- hit_list_genes[[3]][order(-hit_list_genes[[3]]$vars_per_kbp),]
+
+colnames <- c("gene_name","num_variants","cds_length","vars_per_kbp")
+hit_list_genes <- (lapply(hit_list_genes, setNames, colnames))
+
+growth_gene_snp_density <- hit_list_genes[[1]] %>% left_join(growth_genes)
+lipid_gene_snp_density <- hit_list_genes[[2]] %>% left_join(lipid_genes)
+pigment_gene_snp_density <- hit_list_genes[[3]] %>% left_join(pigmentation_genes)
+```
+
+## Growth Genes with the greatest non-synonymous variant density 
+
+```{r echo=FALSE}
+datatable(growth_gene_snp_density)
+```
+
+## Lipid Metabolism Genes with greatest non-synonymous variant density
+
+```{r echo=FALSE}
+datatable(lipid_gene_snp_density)
+```
+
+## Pigmentation Genes with greatest non-synonymous variant density
+
+```{r echo=FALSE}
+datatable(pigment_gene_snp_density)
+```
+
+Genes with the greatest non-synonymous variant density are written to tsv files.
+
+```{r}
+write_tsv(growth_gene_snp_density, "~/fast_dir/snakes/results/growth_gene_snp_density.tsv", append=FALSE, col_names=TRUE)
+write_tsv(lipid_gene_snp_density, "~/fast_dir/snakes/results/lipid_gene_snp_density.tsv", append=FALSE, col_names=TRUE)
+write_tsv(pigment_gene_snp_density, "~/fast_dir/snakes/results/pigment_gene_snp_density.tsv", append=FALSE, col_names=TRUE)
+```
+
+# Identify genes without non-synonymous mutations
+
+Genes of interest without non-synonymous mutations are also identified. The names of genes with non-synonymous mutations are compared with the appropriate gene set and any genes that aren't present in the first list are selected. 
+
+```{r}
+gro_1 <- as.data.frame(hit_list_genes[[1]]$gene_name)
+gro_2 <- as.data.frame(growth_genes$gene_name)
+
+lip_1 <- as.data.frame(hit_list_genes[[2]]$gene_name)
+lip_2 <- as.data.frame(lipid_genes$gene_name)
+
+pig_1 <- as.data.frame(hit_list_genes[[3]]$gene_name)
+pig_2 <- as.data.frame(pigmentation_genes$gene_name)
+
+names(gro_1)[1] <- "gene_name"
+names(gro_2)[1] <- "gene_name"
+
+names(lip_1)[1] <- "gene_name"
+names(lip_2)[1] <- "gene_name"
+
+names(pig_1)[1] <- "gene_name"
+names(pig_2)[1] <- "gene_name"
+
+noVar_growth <- anti_join(gro_2,gro_1, by = "gene_name")
+noVar_lipid <- anti_join(lip_2,lip_1, by = "gene_name")
+noVar_pigmentation <- anti_join(pig_2,pig_1, by = "gene_name")
+
+#Adding Ensembl IDs
+noVar_growth <- noVar_growth %>% left_join(growth_genes)
+noVar_lipid <- noVar_lipid %>% left_join(lipid_genes)
+noVar_pigmentation <- noVar_pigmentation %>% left_join(pigmentation_genes)
+
+```
+
+The tables below details the genes identified with no non-synonymous variants within their coding regions. These genes are exported into .txt files the gene_name in the first column and corresponding gene_id (EnsemblID) in the second column. 
+
+## Growth Genes without coding variants
+
+```{r echo=FALSE}
+datatable(noVar_growth, rownames = FALSE)
+```
+
+## Lipid Genes without coding variants
+
+```{r echo=FALSE}
+datatable(noVar_lipid, rownames = FALSE)
+```
+
+## Pigmentation Genes without coding variants
+
+```{r echo=FALSE}
+datatable(noVar_pigmentation, rownames = FALSE)
+```
+
+All genes without coding variants are written to tsv files.
+
+```{r}
+write_tsv(noVar_growth, "~/fast_dir/snakes/results/genes_no_variants_growth.tsv", append=FALSE, col_names=TRUE)
+write_tsv(noVar_lipid, "~/fast_dir/snakes/results/genes_no_variants_lipid.tsv", append=FALSE, col_names=TRUE)
+write_tsv(noVar_pigmentation, "~/fast_dir/snakes/results/genes_no_variants_pigmentation.tsv", append=FALSE, col_names=TRUE)
+
+```
+
+# Session Info
+
+```{r echo=FALSE}
+sessionInfo()
+```
