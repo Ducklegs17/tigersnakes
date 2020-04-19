@@ -1,5 +1,21 @@
 
-##Explanation of rule names:
+## Results file descriptions
+
+Separate files are provided for growth, lipid and pigmentation gene sets. 
+
+geneset_promoter_variants
+Variants identified by all three variant callers that pass coverage filters and are located within the promoter region of the genes of interest. 
+
+geneset_nonsynonymous_variants
+All non-synonymous variants located within the genes of interest (includes the reference and alternate allele)
+
+geneset_genes_without_variants
+Genes with zero non-synonymous variants.
+
+geneset_variant_density
+Genes with calculated non-synonymous variant density per kbp of coding regions.
+
+## Explanation of rule names:
 
 **bwa_index:**
 Indexes reads. Necessary for alignment.
