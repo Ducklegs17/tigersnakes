@@ -1,3 +1,6 @@
+## Brief Introduction
+
+Snakemake was used to create the variant calling workflow. A visual representation of the rulegraph for the workflow can be seen in the TigerSnakeRulegraph.png. Descriptions of the purpose of each of the rules can be found below. For further details regarding pre-processing, see the Snakefile where the rules are defined and R/tiger_snake_project.Rmd for a brief description of pre-processing steps. Further analysis was undertaken in R and can again be found in the R/tiger_snake_project.Rmd file. Results from this analysis are located in the results folder (see below for a description of each type of result file). html files output from R can also be found in the R/ folder. 
 
 ## Results file descriptions
 
