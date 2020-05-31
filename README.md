@@ -3,7 +3,8 @@
 Snakemake was used to create the variant calling workflow. A visual representation of the rulegraph for the workflow can be seen in the TigerSnakeRulegraph.png. Descriptions of the purpose of each of the rules can be found below. For further details regarding pre-processing, see the Snakefile where the rules are defined and R/tiger_snake_project.Rmd for a brief description of pre-processing steps. Further analysis was undertaken in R and can again be found in the R/tiger_snake_project.Rmd file. Results from this analysis are located in the results folder (see below for a description of each type of result file). html files output from R can also be found in the R/ folder. 
 
 
-- [01 Testing](https://Ducklegs17.github.io/Tigersnakes/R/tiger_snake_project.html)
+- [01 Identification of variants]( https://htmlpreview.github.io/?https://github.com/Ducklegs17/tigersnakes/blob/master/R/tiger_snake_project.html)
+- [02 Identification of genes with highest non-synonymous variant density]( https://htmlpreview.github.io/?https://github.com/Ducklegs17/tigersnakes/blob/master/R/tigerSnake_pt2.html)
 
 Separate files are provided for growth, lipid and pigmentation gene sets. 
 
